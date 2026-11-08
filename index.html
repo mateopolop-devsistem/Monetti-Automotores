@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Monetti Automotores · Demo del asistente de WhatsApp</title>
+<style>
+:root{
+  --tinta:#14201F; --tenue:#4A5A58; --suave:#2C3A38;
+  --fondo:#F3F5F4; --chat:#E9EEEC; --borde:#D4DCDA; --borde2:#B9C5C2; --linea:#E3E8E6; --claro:#F7F9F8;
+  --acento:#0F5C63; --cliente:#CFE6E2;
+  --ia:#D8ECE9; --ia-texto:#0B4A50;
+  --humano:#FBE2CC; --humano-texto:#7A3B00;
+  --alerta:#A33A00; --ok:#E2F1E8; --ok-texto:#14472D;
+  --ejemplo:#FFE9B8; --ejemplo-texto:#5C4000;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{color-scheme:light}
+body{margin:0;background:var(--fondo);color:var(--tinta);font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;font-size:15px;line-height:1.45}
+h1,h2,h3{margin:0;font-family:"Space Grotesk",Inter,"Segoe UI",system-ui,sans-serif}
+h1{font-size:28px;line-height:1.2}
+h2{font-size:18px}
+p{margin:0}
+.banda{background:var(--tinta);color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;text-align:center;padding:6px 16px}
+.cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--borde)}
+.marca{display:flex;align-items:center;gap:10px}
+.marca .textos{display:flex;flex-direction:column}
+.sub{font-size:13px;color:var(--tenue)}
+.avatar{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--acento);color:#fff;font-weight:700;font-size:14px}
+.pestanas{display:flex;flex-wrap:wrap;gap:6px}
+.pestanas a{display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;color:var(--tinta);text-decoration:none;font-weight:600}
+.pestanas a:hover{background:var(--linea)}
+.pestanas a[aria-current="page"]{background:var(--ia);color:var(--ia-texto)}
+.contenedor{max-width:1480px;margin:0 auto;padding:24px 16px 40px}
+.bajada{color:var(--tenue);margin:6px 0 24px;max-width:72ch;text-wrap:pretty}
+
+/* Celulares */
+.celulares{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr));gap:28px 24px;justify-items:center}
+.paso{margin:0;display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px}
+.paso figcaption{display:flex;align-items:center;gap:8px;font-weight:600}
+.paso figcaption b{width:26px;height:26px;border-radius:50%;background:var(--tinta);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto}
+.celular{width:100%;height:760px;display:flex;flex-direction:column;overflow:hidden;background:var(--chat);border:1px solid var(--borde2);border-radius:28px;box-shadow:0 10px 30px rgba(20,32,31,.08)}
+.tel-cabecera{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid var(--borde)}
+.tel-cabecera .textos{display:flex;flex-direction:column}
+.tel-chat{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:14px 12px}
+.tel-chat > :first-child{margin-top:auto}
+.fecha{align-self:center;padding:3px 10px;border-radius:8px;background:var(--borde);color:var(--suave);font-size:12px;font-weight:600}
+.burbuja{max-width:86%;padding:9px 12px;text-wrap:pretty}
+.burbuja.cli{align-self:flex-end;background:var(--cliente);border-radius:14px 14px 4px 14px}
+.burbuja.bot{align-self:flex-start;background:#fff;border-radius:14px 14px 14px 4px}
+.ancho{width:86%}
+.unidad{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.foto{height:90px;display:flex;align-items:center;justify-content:center;background:#CBD5D3;color:var(--suave);font-size:13px;font-weight:500}
+.unidad .datos{padding:9px 12px;display:flex;flex-direction:column;gap:2px}
+.etiqueta{display:inline-block;padding:1px 7px;border-radius:6px;background:var(--ejemplo);color:var(--ejemplo-texto);font-size:12px;font-weight:600}
+.fila{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.entre{justify-content:space-between}
+.apilada{display:flex;flex-direction:column;gap:10px}
+.cuentas{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+.der{text-align:right;font-variant-numeric:tabular-nums}
+.separador{border-top:1px solid var(--borde);padding-top:10px}
+.fuerte{font-weight:700}
+.audio{display:flex;align-items:center;gap:10px;width:72%;padding:8px 12px 8px 8px}
+.redondo{width:44px;height:44px;border-radius:50%;border:0;background:var(--acento);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+.onda{flex:1;display:flex;align-items:center;gap:3px;height:28px}
+.onda span{width:3px;border-radius:2px;background:var(--suave)}
+.fotos{width:72%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px}
+.fotos span{height:72px;display:flex;align-items:center;justify-content:center;background:var(--borde2);color:var(--suave);font-size:12px;border-radius:6px}
+.firma{display:block;font-size:13px;font-weight:600;color:var(--humano-texto)}
+.tel-entrada{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--borde)}
+.tel-entrada input{flex:1;min-width:0;min-height:44px;padding:0 14px;border:1px solid var(--borde2);border-radius:22px;font:inherit;color:var(--tinta);background:#fff}
+
+/* Panel */
+.panel-cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--borde)}
+.conectado{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--ok);color:var(--ok-texto);font-weight:600;font-size:13px}
+.conectado i{width:10px;height:10px;border-radius:50%;background:#1F7A4D}
+.panel-cuerpo{display:flex;flex-wrap:wrap;align-items:flex-start;max-width:1480px;margin:0 auto}
+.menu{flex:1 1 200px;display:flex;flex-direction:column;gap:4px;padding:16px 12px}
+.menu button{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--tinta);font:inherit;font-weight:500;text-align:left;cursor:pointer}
+.menu button:hover{background:var(--linea)}
+.menu button[aria-current="page"]{background:var(--ia);color:var(--ia-texto);font-weight:700}
+.contador{padding:1px 8px;border-radius:999px;background:var(--alerta);color:#fff;font-size:12px;font-weight:700}
+.pronto{display:flex;flex-direction:column;gap:2px;padding:10px 12px;color:var(--tenue);font-size:13px}
+.subvista{flex:999 1 560px;min-width:0;padding:16px 16px 28px;display:flex;flex-direction:column;gap:16px}
+.caja{background:#fff;border:1px solid var(--borde);border-radius:14px}
+.columnas{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px}
+.chip{display:inline-flex;align-self:flex-start;align-items:center;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.chip-ia{background:var(--ia);color:var(--ia-texto)}
+.chip-humano{background:var(--humano);color:var(--humano-texto)}
+.chip-alerta{background:var(--alerta);color:#fff}
+.chip-grande{padding:5px 12px;font-size:13px;align-self:center}
+.tenue{color:var(--tenue)}
+.p13{font-size:13px}
+.p12{font-size:12px}
+.campo{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--borde2);border-radius:10px;font:inherit;color:var(--tinta);background:#fff}
+.lista-charlas{flex:1 1 260px;min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.charla{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:0;border-top:1px solid var(--linea);background:#fff;font:inherit;color:inherit;text-align:left}
+.charla.activa{background:#EEF6F5}
+.conversacion{flex:3 1 420px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.conv-cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--linea)}
+.conv-cabecera .chip{align-self:center}
+.mensajes{display:flex;flex-direction:column;gap:10px;max-height:560px;overflow-y:auto;padding:16px;background:var(--claro)}
+.msj{max-width:78%;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:12px;text-wrap:pretty}
+.quien{font-size:12px}
+.msj.cli{align-self:flex-start;background:#fff;border:1px solid var(--linea)}
+.msj.cli .quien{color:var(--tenue)}
+.msj.ia{align-self:flex-end;background:var(--ia)}
+.msj.ia .quien{color:var(--ia-texto);font-weight:600}
+.msj.hum{align-self:flex-end;background:var(--humano)}
+.msj.hum .quien{color:var(--humano-texto);font-weight:600}
+.evento{align-self:center;max-width:90%;padding:4px 12px;border-radius:999px;background:var(--linea);color:var(--suave);font-size:12px;font-weight:600;text-align:center}
+.redactar{display:flex;flex-direction:column;gap:8px;padding:12px 16px;border-top:1px solid var(--linea)}
+.redactar form{display:flex;gap:8px}
+.redactar input{flex:1 1 auto;min-width:0}
+.boton{min-height:44px;padding:0 16px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.boton-negro{border:0;background:var(--tinta);color:#fff}
+.boton-borde{border:1px solid var(--tinta);background:#fff;color:var(--tinta)}
+.boton-gris{border:1px solid var(--borde2);background:#fff;color:var(--tinta)}
+.boton:disabled{opacity:.45;cursor:not-allowed}
+.ficha{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.tarjeta{padding:16px;display:flex;flex-direction:column;gap:12px}
+.etapas{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.etapas li{padding:3px 10px;border:1px solid var(--borde2);border-radius:999px;font-size:12px;color:var(--suave)}
+.etapas li[aria-current]{background:var(--tinta);border-color:var(--tinta);color:#fff;font-weight:700}
+.datos{margin:0;display:flex;flex-direction:column;gap:12px}
+.datos div{display:flex;flex-direction:column;gap:2px}
+.datos dt{font-size:12px;font-weight:600;color:var(--tenue)}
+.datos dd{margin:0}
+.cita{font-size:13px;color:var(--tenue)}
+.numero-grande{font-family:"Space Grotesk",Inter,sans-serif;font-size:40px;font-weight:700;line-height:1}
+.reglas{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.reglas li{display:flex;justify-content:space-between;gap:8px}
+.num{font-variant-numeric:tabular-nums;font-weight:700}
+.caja-cabecera{padding:14px 16px;border-bottom:1px solid var(--linea);display:flex;flex-direction:column;gap:2px}
+.llamar{flex:2 1 480px;min-width:0;overflow:hidden}
+.filas{margin:0;padding:0;list-style:none}
+.filas li{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--linea)}
+.filas li:last-child{border-bottom:0}
+.orden{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--linea);font-size:13px;font-weight:700;flex:0 0 auto}
+.orden.urgente{background:var(--alerta);color:#fff}
+.quien-fila{flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.seguimientos{flex:1 1 320px;min-width:0;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.borrador{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--linea);border-radius:12px;background:var(--claro)}
+.aviso{padding:8px 12px;border-radius:10px;font-weight:600}
+.aviso-ok{background:var(--ok);color:var(--ok-texto)}
+.aviso-gris{background:var(--linea);color:var(--suave)}
+.bloque{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.desliza{overflow-x:auto}
+.tablero{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;min-width:1060px}
+.columna{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--fondo)}
+.columna h3{font-size:14px;display:flex;justify-content:space-between}
+.lead{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--borde);border-radius:10px;background:#fff;color:inherit;font:inherit;text-align:left}
+button.lead{cursor:pointer;border-color:var(--tinta)}
+.puntaje{padding:14px 16px 16px;display:flex;flex-wrap:wrap;gap:16px 32px}
+.puntaje .explica{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.puntaje ul{flex:2 1 420px;min-width:0;margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:4px 24px}
+.puntaje li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--linea)}
+
+/* Cómo funciona */
+.carril{border-radius:16px;padding:16px;margin-bottom:20px}
+.carril-auto{background:#E1EFEC}
+.carril-personas{background:#FBE9D9}
+.carril h2{font-size:15px;margin-bottom:12px}
+.carril-auto h2{color:var(--ia-texto)}
+.carril-personas h2{color:var(--humano-texto)}
+.pasos{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:16px}
+.pasos li{background:#fff;border:1px solid var(--borde2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.nro{font-size:12px;font-weight:700;color:var(--tenue)}
+.conexion{margin-top:6px;padding-top:6px;border-top:1px dashed var(--borde2);font-size:13px;color:var(--suave)}
+.alcance{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px;margin-top:8px}
+.alcance ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+footer{max-width:1480px;margin:0 auto;padding:8px 16px 32px;color:var(--tenue);font-size:13px}
+</style>
+</head>
+<body>
+<div class="banda">DEMOSTRACIÓN · DATOS DE EJEMPLO</div>
+
+<header class="cabecera">
+  <div class="marca">
+    <span class="avatar" aria-hidden="true">MA</span>
+    <div class="textos">
+      <strong>Monetti Automotores</strong>
+      <span class="sub">Asistente de WhatsApp · propuesta de MVP</span>
+    </div>
+  </div>
+  <nav class="pestanas" aria-label="Partes de la demo">
+    <a href="#charla">La charla</a>
+    <a href="#panel">El panel</a>
+    <a href="#como-funciona">Cómo funciona</a>
+  </nav>
+</header>
+
+<main>
+<!-- ============ LA CHARLA ============ -->
+<section id="charla" aria-labelledby="t-charla">
+  <div class="contenedor">
+    <h1 id="t-charla">Así atiende el asistente por WhatsApp</h1>
+    <p class="bajada">Una consulta de punta a punta: llega de noche, pide financiación, ofrece su usado por audio y, cuando pide un descuento, sigue un vendedor.</p>
+
+    <div class="celulares">
+      <figure class="paso">
+        <figcaption><b>1</b> Consulta fuera de horario</figcaption>
+        <div class="celular">
+          <div class="tel-cabecera"><span class="avatar" aria-hidden="true">MA</span><div class="textos"><strong>Monetti Automotores</strong><span class="sub">Asistente virtual</span></div></div>
+          <div class="tel-chat">
+            <span class="fecha">Hoy · 23:12</span>
+            <div class="burbuja cli">Hola, precio del sedán 0 km?</div>
+            <div class="burbuja bot">¡Hola! Soy el asistente virtual de Monetti Automotores. Ahora tenemos dos sedanes 0 km:</div>
+            <div class="burbuja bot ancho unidad">
+              <div class="foto">Foto de la unidad</div>
+              <div class="datos"><strong>Sedán 1.3 · 0 km</strong><span class="fila">$ 27.900.000 de contado <span class="etiqueta">Ejemplo</span></span></div>
+            </div>
+            <div class="burbuja bot ancho unidad">
+              <div class="foto">Foto de la unidad</div>
+              <div class="datos"><strong>Sedán 1.6 · 0 km</strong><span class="fila">$ 29.600.000 de contado <span class="etiqueta">Ejemplo</span></span></div>
+            </div>
+            <div class="burbuja bot">¿Lo pensás de contado o te interesa financiarlo?</div>
+          </div>
+          <div class="tel-entrada"><input aria-label="Escribí un mensaje" placeholder="Escribí un mensaje"><button class="redondo" aria-label="Enviar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></div>
+        </div>
+      </figure>
+
+      <figure class="paso">
+        <figcaption><b>2</b> Financiación</figcaption>
+        <div class="celular">
+          <div class="tel-cabecera"><span class="avatar" aria-hidden="true">MA</span><div class="textos"><strong>Monetti Automotores</strong><span class="sub">Asistente virtual</span></div></div>
+          <div class="tel-chat">
+            <span class="fecha">Hoy · 23:15</span>
+            <div class="burbuja cli">Me interesa el 1.3. Puedo entregar 10 millones, ¿cómo quedan las cuotas?</div>
+            <div class="burbuja bot ancho apilada">
+              <div class="fila entre"><strong>Sedán 1.3 · 0 km</strong><span class="etiqueta">Tasas de ejemplo</span></div>
+              <div class="cuentas">
+                <span>Precio</span><span class="der">$ 27.900.000</span>
+                <span>Anticipo</span><span class="der">− $ 10.000.000</span>
+                <span class="fuerte">Saldo</span><span class="der fuerte">$ 17.900.000</span>
+              </div>
+              <div class="cuentas separador">
+                <span>12 cuotas de</span><span class="der fuerte">$ 1.790.000</span>
+                <span>24 cuotas de</span><span class="der fuerte">$ 1.044.000</span>
+              </div>
+            </div>
+            <div class="burbuja bot">Son valores de referencia, con las tasas que carga la concesionaria. La tasa del día te la confirma un vendedor.</div>
+            <div class="burbuja cli">¿Y si entrego mi auto usado?</div>
+            <div class="burbuja bot">¡Claro! Contame marca, modelo, año y kilómetros. Si te queda más cómodo, mandame un audio.</div>
+          </div>
+          <div class="tel-entrada"><input aria-label="Escribí un mensaje" placeholder="Escribí un mensaje"><button class="redondo" aria-label="Enviar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></div>
+        </div>
+      </figure>
+
+      <figure class="paso">
+        <figcaption><b>3</b> Usado por audio</figcaption>
+        <div class="celular">
+          <div class="tel-cabecera"><span class="avatar" aria-hidden="true">MA</span><div class="textos"><strong>Monetti Automotores</strong><span class="sub">Asistente virtual</span></div></div>
+          <div class="tel-chat">
+            <span class="fecha">Hoy · 23:18</span>
+            <div class="burbuja cli audio">
+              <button class="redondo" aria-label="Reproducir audio"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14l11-7z"/></svg></button>
+              <span class="onda" aria-hidden="true"><span style="height:10px"></span><span style="height:18px"></span><span style="height:26px"></span><span style="height:14px"></span><span style="height:22px"></span><span style="height:8px"></span><span style="height:20px"></span><span style="height:12px"></span><span style="height:24px"></span><span style="height:10px"></span><span style="height:16px"></span><span style="height:8px"></span></span>
+              <span class="p13">0:38</span>
+            </div>
+            <div class="burbuja bot ancho apilada">
+              <p>Sí, lo tomamos. Por un Gol 2017 con 90.000 km te doy un rango orientativo: de $ 9.000.000 a $ 10.500.000. La tasación final se hace en el salón.</p>
+              <span class="etiqueta" style="align-self:flex-start">Valores de ejemplo</span>
+            </div>
+            <div class="burbuja bot">¿Me mandás 3 fotos del auto?</div>
+            <div class="burbuja cli fotos"><span>Foto 1</span><span>Foto 2</span><span>Foto 3</span></div>
+            <div class="burbuja bot">Gracias. ¿Cómo te llamás y qué día te queda bien para venir?</div>
+            <div class="burbuja cli">Laura. Mañana a la mañana</div>
+            <div class="burbuja bot">Listo, Laura. Le paso todo a un vendedor, que te confirma el horario por acá.</div>
+          </div>
+          <div class="tel-entrada"><input aria-label="Escribí un mensaje" placeholder="Escribí un mensaje"><button class="redondo" aria-label="Enviar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></div>
+        </div>
+      </figure>
+
+      <figure class="paso">
+        <figcaption><b>4</b> Pase a un vendedor</figcaption>
+        <div class="celular">
+          <div class="tel-cabecera"><span class="avatar" aria-hidden="true">MA</span><div class="textos"><strong>Monetti Automotores</strong><span class="sub">Asistente virtual</span></div></div>
+          <div class="tel-chat">
+            <span class="fecha">Hoy · 23:24</span>
+            <div class="burbuja cli">¿Me hacen un descuento si pago el saldo de contado?</div>
+            <div class="burbuja bot">Los descuentos los define un vendedor, así te dan la mejor respuesta. Ya le pasé tu consulta a Juan, que sigue la charla por acá.</div>
+            <span class="fecha">Al día siguiente · 9:05</span>
+            <div class="burbuja bot"><span class="firma">Juan · vendedor</span>Hola Laura, soy Juan, de Monetti Automotores. Vi tu consulta por el sedán 1.3 y tu Gol. ¿Te viene bien venir hoy a las 11? Así lo tasamos y vemos el descuento.</div>
+            <div class="burbuja cli">Dale, a las 11 voy</div>
+            <div class="burbuja bot"><span class="firma">Juan · vendedor</span>Perfecto, te espero.</div>
+          </div>
+          <div class="tel-entrada"><input aria-label="Escribí un mensaje" placeholder="Escribí un mensaje"><button class="redondo" aria-label="Enviar"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button></div>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EL PANEL ============ -->
+<section id="panel" aria-label="El panel de Monetti Automotores" hidden>
+  <div class="panel-cabecera">
+    <div class="marca">
+      <span class="avatar" aria-hidden="true">MA</span>
+      <div class="textos"><strong>Panel de Monetti</strong><span class="sub">Atención por WhatsApp</span></div>
+    </div>
+    <span class="conectado"><i aria-hidden="true"></i>WhatsApp conectado</span>
+  </div>
+
+  <div class="panel-cuerpo">
+    <nav class="menu" aria-label="Secciones del panel">
+      <button type="button" data-sub="conversaciones" aria-current="page">Conversaciones <span class="contador" data-contador>1</span></button>
+      <button type="button" data-sub="interesados">Interesados</button>
+      <div class="pronto"><span>Inicio · Stock · Financiación · Reglas del asistente</span><span class="p12">En diseño</span></div>
+    </nav>
+
+    <!-- Conversaciones -->
+    <div class="subvista" id="sub-conversaciones">
+      <div class="fila entre">
+        <h1>Conversaciones</h1>
+        <span class="chip chip-alerta chip-grande" id="aviso-espera">1 charla espera a un vendedor</span>
+      </div>
+
+      <div class="columnas">
+        <section class="caja lista-charlas" aria-label="Lista de conversaciones">
+          <div style="padding:12px"><input class="campo" aria-label="Buscar por nombre o teléfono" placeholder="Buscar por nombre o teléfono"></div>
+          <button type="button" class="charla activa" aria-current="true">
+            <span class="fila entre"><strong>Laura</strong><span class="p12 tenue">9:12</span></span>
+            <span class="tenue">Dale, a las 11 voy</span>
+            <span class="chip chip-humano" data-modo-laura>Modo humano · Juan</span>
+          </button>
+          <button type="button" class="charla">
+            <span class="fila entre"><strong>Pablo</strong><span class="p12 tenue">22:51</span></span>
+            <span class="tenue">Quiero hablar con una persona</span>
+            <span class="chip chip-alerta" data-pablo>Espera a un vendedor</span>
+          </button>
+          <button type="button" class="charla">
+            <span class="fila entre"><strong>Diego</strong><span class="p12 tenue">22:10</span></span>
+            <span class="tenue">¿Tienen SUV usadas?</span>
+            <span class="chip chip-ia">Modo IA</span>
+          </button>
+          <button type="button" class="charla">
+            <span class="fila entre"><strong>Marta</strong><span class="p12 tenue">19:42</span></span>
+            <span class="tenue">Gracias, el sábado paso</span>
+            <span class="chip chip-ia">Modo IA</span>
+          </button>
+        </section>
+
+        <section class="caja conversacion" aria-label="Conversación con Laura">
+          <div class="conv-cabecera">
+            <div style="display:flex;flex-direction:column"><strong style="font-size:16px">Laura</strong><span class="p13 tenue">11 0000-0000 · número de ejemplo</span></div>
+            <div class="fila">
+              <span class="chip chip-humano" data-modo-laura>Modo humano · Juan</span>
+              <button type="button" class="boton boton-borde" id="btn-modo">Volver a modo IA</button>
+            </div>
+          </div>
+
+          <div class="mensajes" id="mensajes">
+            <div class="msj cli"><span class="quien">Laura · 23:12</span><span>Hola, precio del sedán 0 km?</span></div>
+            <div class="msj ia"><span class="quien">IA · 23:12</span><span>Ahora tenemos dos sedanes 0 km: el 1.3 a $ 27.900.000 y el 1.6 a $ 29.600.000. ¿Lo pensás de contado o te interesa financiarlo?</span></div>
+            <div class="msj cli"><span class="quien">Laura · 23:15</span><span>Me interesa el 1.3. Puedo entregar 10 millones, ¿cómo quedan las cuotas?</span></div>
+            <div class="msj ia"><span class="quien">IA · 23:15</span><span>Con $ 10.000.000 de anticipo quedan 12 cuotas de $ 1.790.000 o 24 de $ 1.044.000. La tasa del día te la confirma un vendedor.</span></div>
+            <div class="msj cli"><span class="quien">Laura · 23:18 · audio de 0:38</span><span>«Tengo un Gol 2017 con 90 mil kilómetros, ¿me lo toman?»</span><span class="p12 tenue">Transcripción automática</span></div>
+            <div class="msj ia"><span class="quien">IA · 23:18</span><span>Sí, lo tomamos. Te doy un rango orientativo: de $ 9.000.000 a $ 10.500.000. La tasación final se hace en el salón. ¿Me mandás 3 fotos del auto?</span></div>
+            <div class="msj cli"><span class="quien">Laura · 23:20</span><span>3 fotos</span></div>
+            <div class="msj ia"><span class="quien">IA · 23:20</span><span>Gracias. ¿Cómo te llamás y qué día te queda bien para venir?</span></div>
+            <div class="msj cli"><span class="quien">Laura · 23:21</span><span>Laura. Mañana a la mañana</span></div>
+            <div class="msj cli"><span class="quien">Laura · 23:24</span><span>¿Me hacen un descuento si pago el saldo de contado?</span></div>
+            <div class="msj ia"><span class="quien">IA · 23:24</span><span>Los descuentos los define un vendedor, así te dan la mejor respuesta. Ya le pasé tu consulta a Juan, que sigue la charla por acá.</span></div>
+            <div class="evento">23:24 · Pasó a modo humano: pidió un descuento</div>
+            <div class="msj hum"><span class="quien">Juan · 9:05</span><span>Hola Laura, soy Juan, de Monetti Automotores. Vi tu consulta por el sedán 1.3 y tu Gol. ¿Te viene bien venir hoy a las 11? Así lo tasamos y vemos el descuento.</span></div>
+            <div class="msj cli"><span class="quien">Laura · 9:12</span><span>Dale, a las 11 voy</span></div>
+          </div>
+
+          <div class="redactar">
+            <p class="p13 tenue" id="nota-modo">El asistente no responde en esta charla. A Laura le llega como un mensaje común.</p>
+            <form id="form-msj">
+              <input class="campo" id="campo-msj" aria-label="Mensaje para Laura" placeholder="Escribile a Laura" autocomplete="off">
+              <button type="submit" class="boton boton-negro" id="btn-enviar">Enviar</button>
+            </form>
+          </div>
+        </section>
+
+        <aside class="ficha" aria-label="Ficha de Laura">
+          <div class="caja tarjeta">
+            <div style="display:flex;flex-direction:column;gap:2px"><h2>Ficha de Laura</h2><span class="p13 tenue">Se completa sola con lo que dice en la charla</span></div>
+            <ol class="etapas" aria-label="Etapa">
+              <li>Nuevo</li><li>Interesado</li><li aria-current="step">Cotizado</li><li>Ganado</li><li>Perdido</li>
+            </ol>
+            <dl class="datos">
+              <div><dt>Busca</dt><dd class="fuerte">Sedán 1.3 · 0 km</dd><dd class="cita">«Me interesa el 1.3»</dd></div>
+              <div><dt>Anticipo</dt><dd class="fuerte">$ 10.000.000</dd><dd class="cita">«Puedo entregar 10 millones»</dd></div>
+              <div><dt>Usado</dt><dd class="fuerte">Gol 2017 · 90.000 km · 3 fotos</dd><dd class="cita">«Tengo un Gol 2017 con 90 mil kilómetros» (audio)</dd></div>
+              <div><dt>Visita</dt><dd class="fuerte">Hoy a las 11, con Juan</dd><dd class="cita">«Dale, a las 11 voy»</dd></div>
+              <div><dt>Falta</dt><dd class="fuerte">Confirmar la tasa y tasar el usado</dd></div>
+            </dl>
+          </div>
+          <div class="caja tarjeta">
+            <div class="fila entre"><h2>Puntaje</h2><span class="chip chip-alerta">Llamar primero</span></div>
+            <div class="numero-grande">80</div>
+            <ul class="reglas">
+              <li><span>Dejó un anticipo</span><span class="num">+30</span></li>
+              <li><span>Quiere venir al salón</span><span class="num">+30</span></li>
+              <li><span>Tiene usado para entregar</span><span class="num">+20</span></li>
+            </ul>
+            <span class="p13 tenue">Las reglas del puntaje las define la concesionaria.</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Interesados -->
+    <div class="subvista" id="sub-interesados" hidden>
+      <div class="fila entre" style="align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h1>Interesados</h1>
+          <span class="tenue">Cada persona que escribe tiene su ficha. El asistente la completa y el vendedor la mueve de etapa.</span>
+        </div>
+        <input class="campo" style="flex:0 1 300px;min-width:0" aria-label="Buscar interesado por nombre o teléfono" placeholder="Buscar por nombre o teléfono">
+      </div>
+
+      <div class="columnas">
+        <section class="caja llamar" aria-label="A quién llamar hoy">
+          <div class="caja-cabecera"><h2>A quién llamar hoy</h2><span class="p13 tenue">Primero, los que esperan a una persona. Después, por puntaje.</span></div>
+          <ol class="filas">
+            <li>
+              <span class="orden urgente" id="orden-pablo">1</span>
+              <div class="quien-fila"><strong>Pablo</strong><span class="tenue">Pidió hablar con una persona · 22:51 · Sedán 0 km financiado</span></div>
+              <span class="num">40</span>
+              <button type="button" class="boton boton-negro" id="btn-tomar-pablo">Tomar</button>
+            </li>
+            <li>
+              <span class="orden">2</span>
+              <div class="quien-fila"><strong>Laura</strong><span class="tenue">Visita hoy a las 11 · Sedán 1.3 con usado · Juan</span></div>
+              <span class="num">80</span>
+              <button type="button" class="boton boton-borde" data-abrir="conversaciones">Abrir charla</button>
+            </li>
+            <li>
+              <span class="orden">3</span>
+              <div class="quien-fila"><strong>Romina</strong><span class="tenue">Sin respuesta hace 3 días · Sedán 1.6 en 24 cuotas · Juan</span></div>
+              <span class="num">30</span>
+            </li>
+            <li>
+              <span class="orden">4</span>
+              <div class="quien-fila"><strong>Marta</strong><span class="tenue">Dijo que pasa el sábado · Sedán 1.6 · Sin asignar</span></div>
+              <span class="num">30</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="caja seguimientos" aria-label="Seguimientos para aprobar">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <h2>Seguimientos para aprobar</h2>
+            <span class="p13 tenue">El sistema los propone. Ninguno sale sin que una persona lo apruebe, y se aprueban de a uno.</span>
+          </div>
+          <div class="borrador">
+            <div class="fila entre"><strong>Para Romina</strong><span class="p13 tenue">Sin respuesta hace 3 días</span></div>
+            <p>Hola Romina, ¿pudiste ver el presupuesto del sedán 1.6? Si querés, te reservamos un horario para verlo en el salón.</p>
+            <div class="fila" id="acciones-seguimiento">
+              <button type="button" class="boton boton-negro" id="btn-aprobar">Aprobar y enviar</button>
+              <button type="button" class="boton boton-gris" id="btn-descartar">Descartar</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="caja bloque" aria-label="Embudo de ventas">
+        <div class="fila entre"><h2>Embudo</h2><span class="p13 tenue">La etapa la cambia el vendedor. Ganado y perdido llevan el motivo.</span></div>
+        <div class="desliza">
+          <div class="tablero">
+            <div class="columna">
+              <h3><span>Nuevo</span><span class="tenue">1</span></h3>
+              <div class="lead"><strong>Diego</strong><span class="tenue">SUV usada</span><span class="p13 tenue">Lo atiende el asistente · 22:10</span></div>
+            </div>
+            <div class="columna">
+              <h3><span>Interesado</span><span class="tenue">2</span></h3>
+              <div class="lead"><span class="fila entre"><strong>Pablo</strong><span class="num">40</span></span><span class="tenue">Sedán 0 km financiado</span><span class="chip chip-alerta" data-pablo>Espera a un vendedor</span></div>
+              <div class="lead"><span class="fila entre"><strong>Marta</strong><span class="num">30</span></span><span class="tenue">Sedán 1.6</span><span class="p13 tenue">Pasa el sábado · Sin asignar</span></div>
+            </div>
+            <div class="columna">
+              <h3><span>Cotizado</span><span class="tenue">2</span></h3>
+              <button type="button" class="lead" data-abrir="conversaciones"><span class="fila entre"><strong>Laura</strong><span class="num">80</span></span><span class="tenue">Sedán 1.3 con usado</span><span class="p13 tenue">Juan · Visita hoy 11 h</span></button>
+              <div class="lead"><span class="fila entre"><strong>Romina</strong><span class="num">30</span></span><span class="tenue">Sedán 1.6 en 24 cuotas</span><span class="p13 tenue">Juan · Sin respuesta hace 3 días</span></div>
+            </div>
+            <div class="columna">
+              <h3><span>Ganado</span><span class="tenue">1</span></h3>
+              <div class="lead"><strong>Carlos</strong><span class="tenue">Sedán 1.6 · 0 km</span><span class="p13 tenue">Juan · Vendido el 02/11</span></div>
+            </div>
+            <div class="columna">
+              <h3><span>Perdido</span><span class="tenue">1</span></h3>
+              <div class="lead"><strong>Nicolás</strong><span class="tenue">SUV 0 km</span><span class="p13 tenue">Motivo: compró en otra agencia · 30/10</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="caja puntaje" aria-label="Cómo se calcula el puntaje">
+        <div class="explica">
+          <h2>Cómo se calcula el puntaje</h2>
+          <span class="tenue">Son reglas fijas, no la opinión de la IA: con los mismos datos, siempre da lo mismo. Las define la concesionaria.</span>
+        </div>
+        <ul>
+          <li><span>Pidió hablar con una persona</span><span class="num">+40</span></li>
+          <li><span>Dejó un anticipo</span><span class="num">+30</span></li>
+          <li><span>Quiere venir al salón</span><span class="num">+30</span></li>
+          <li><span>Tiene usado para entregar</span><span class="num">+20</span></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CÓMO FUNCIONA ============ -->
+<section id="como-funciona" aria-labelledby="t-como" hidden>
+  <div class="contenedor">
+    <h1 id="t-como">Cómo se maneja el CRM en el MVP</h1>
+    <p class="bajada">Arriba, lo que hace el sistema solo. Abajo, lo que hace el equipo de Monetti.</p>
+
+    <div class="carril carril-auto">
+      <h2>Automático</h2>
+      <ol class="pasos">
+        <li><span class="nro">Paso 1</span><strong>Entra un mensaje</strong><span>por WhatsApp, a cualquier hora</span></li>
+        <li><span class="nro">Paso 2</span><strong>El asistente responde</strong><span>con el stock, los precios y las cuotas que carga la concesionaria</span><span class="conexion">Si hace falta una persona, pasa al paso 6</span></li>
+        <li><span class="nro">Paso 3</span><strong>Se arma la ficha</strong><span>con la frase exacta del cliente</span></li>
+        <li><span class="nro">Paso 4</span><strong>El puntaje ordena</strong><span>a quién llamar primero, con reglas fijas</span><span class="conexion">A los 3 días sin respuesta, propone un seguimiento (paso 8)</span></li>
+      </ol>
+    </div>
+
+    <div class="carril carril-personas">
+      <h2>Personas de Monetti</h2>
+      <ol class="pasos" start="5">
+        <li><span class="nro">Paso 5</span><strong>Carga stock y tasas</strong><span>el dueño, desde el panel</span><span class="conexion">Es lo que usa el asistente para responder (paso 2)</span></li>
+        <li><span class="nro">Paso 6</span><strong>Un vendedor toma la charla</strong><span>si pide descuento, una visita o está molesto</span></li>
+        <li><span class="nro">Paso 7</span><strong>Mueve la etapa</strong><span>cotizado, ganado o perdido, con el motivo</span></li>
+        <li><span class="nro">Paso 8</span><strong>Aprueba cada seguimiento</strong><span>uno por uno, antes de que salga</span></li>
+      </ol>
+    </div>
+
+    <div class="alcance">
+      <div class="caja tarjeta">
+        <h2>En el MVP</h2>
+        <ul>
+          <li>La ficha la completa el asistente; la etapa la cambia el vendedor.</li>
+          <li>El puntaje sale de reglas fijas que define la concesionaria.</li>
+          <li>Las charlas que esperan a un vendedor aparecen primero en el panel. Alguien del equipo tiene que mirarlo.</li>
+          <li>Ningún seguimiento sale sin que una persona lo apruebe.</li>
+          <li>Todo vive en el panel: no se conecta con otro CRM.</li>
+        </ul>
+      </div>
+      <div class="caja tarjeta">
+        <h2>Para una segunda etapa</h2>
+        <ul>
+          <li>Aviso al vendedor por WhatsApp cuando entra un interesado con puntaje alto.</li>
+          <li>Seguimientos programados a los 3 y a los 7 días, con novedades o promociones.</li>
+          <li>Conexión con la publicidad de Meta: el interesado entra y el asistente lo atiende al instante.</li>
+          <li>Postventa: recordatorio del service y turnos para el taller.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>Prototipo de demostración preparado para Monetti Automotores. Unidades, precios, tasas, nombres y teléfonos son de ejemplo. No está conectado a WhatsApp ni guarda datos.</footer>
+
+<script>
+(function () {
+  var vistas = ['charla', 'panel', 'como-funciona'];
+  function mostrarVista() {
+    var h = decodeURIComponent(location.hash.slice(1));
+    if (vistas.indexOf(h) === -1) h = 'charla';
+    vistas.forEach(function (v) { document.getElementById(v).hidden = v !== h; });
+    document.querySelectorAll('.pestanas a').forEach(function (a) {
+      if (a.getAttribute('href') === '#' + h) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('hashchange', function () { mostrarVista(); window.scrollTo(0, 0); });
+  mostrarVista();
+
+  var subs = ['conversaciones', 'interesados'];
+  function abrirSub(n) {
+    subs.forEach(function (s) { document.getElementById('sub-' + s).hidden = s !== n; });
+    document.querySelectorAll('[data-sub]').forEach(function (b) {
+      if (b.getAttribute('data-sub') === n) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+  }
+  document.querySelectorAll('[data-sub]').forEach(function (b) {
+    b.addEventListener('click', function () { abrirSub(b.getAttribute('data-sub')); });
+  });
+  document.querySelectorAll('[data-abrir="conversaciones"]').forEach(function (b) {
+    b.addEventListener('click', function () { abrirSub('conversaciones'); window.scrollTo(0, 0); });
+  });
+
+  function ahora() {
+    var d = new Date();
+    return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  var humano = true;
+  var btnModo = document.getElementById('btn-modo');
+  var campo = document.getElementById('campo-msj');
+  var btnEnviar = document.getElementById('btn-enviar');
+  var nota = document.getElementById('nota-modo');
+  var mensajes = document.getElementById('mensajes');
+
+  function pintarModo() {
+    document.querySelectorAll('[data-modo-laura]').forEach(function (e) {
+      e.textContent = humano ? 'Modo humano · Juan' : 'Modo IA';
+      e.classList.toggle('chip-humano', humano);
+      e.classList.toggle('chip-ia', !humano);
+    });
+    btnModo.textContent = humano ? 'Volver a modo IA' : 'Pasar a modo humano';
+    campo.disabled = !humano;
+    btnEnviar.disabled = !humano;
+    campo.placeholder = humano ? 'Escribile a Laura' : 'Bloqueado mientras atiende el asistente';
+    nota.textContent = humano
+      ? 'El asistente no responde en esta charla. A Laura le llega como un mensaje común.'
+      : 'El asistente está atendiendo esta charla. Para escribir vos, pasá a modo humano.';
+  }
+  function agregar(el) { mensajes.appendChild(el); mensajes.scrollTop = mensajes.scrollHeight; }
+
+  btnModo.addEventListener('click', function () {
+    humano = !humano;
+    var ev = document.createElement('div');
+    ev.className = 'evento';
+    ev.textContent = ahora() + ' · ' + (humano ? 'Juan tomó la charla: modo humano' : 'Volvió a modo IA: responde el asistente');
+    agregar(ev);
+    pintarModo();
+  });
+
+  document.getElementById('form-msj').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var texto = campo.value.trim();
+    if (!texto || !humano) return;
+    var m = document.createElement('div');
+    m.className = 'msj hum';
+    var q = document.createElement('span');
+    q.className = 'quien';
+    q.textContent = 'Juan · ' + ahora();
+    var c = document.createElement('span');
+    c.textContent = texto;
+    m.appendChild(q);
+    m.appendChild(c);
+    agregar(m);
+    campo.value = '';
+  });
+  pintarModo();
+
+  document.getElementById('btn-tomar-pablo').addEventListener('click', function () {
+    var chip = document.createElement('span');
+    chip.className = 'chip chip-humano';
+    chip.style.alignSelf = 'center';
+    chip.textContent = 'Lo tomó Juan';
+    this.replaceWith(chip);
+    document.querySelectorAll('[data-pablo]').forEach(function (e) {
+      e.className = 'chip chip-humano';
+      e.textContent = 'Modo humano · Juan';
+    });
+    document.querySelectorAll('[data-contador]').forEach(function (e) { e.hidden = true; });
+    var aviso = document.getElementById('aviso-espera');
+    aviso.className = 'chip chip-ia chip-grande';
+    aviso.textContent = 'Ninguna charla espera a un vendedor';
+    document.getElementById('orden-pablo').classList.remove('urgente');
+  });
+
+  function cerrarSeguimiento(clase, texto) {
+    var acciones = document.getElementById('acciones-seguimiento');
+    var aviso = document.createElement('p');
+    aviso.className = 'aviso ' + clase;
+    aviso.textContent = texto;
+    acciones.replaceWith(aviso);
+  }
+  document.getElementById('btn-aprobar').addEventListener('click', function () {
+    cerrarSeguimiento('aviso-ok', 'Enviado por Juan. Si Romina responde, el asistente sigue la charla.');
+  });
+  document.getElementById('btn-descartar').addEventListener('click', function () {
+    cerrarSeguimiento('aviso-gris', 'Descartado. No se le mandó nada a Romina.');
+  });
+})();
+</script>
+</body>
+</html>
