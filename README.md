@@ -6,9 +6,11 @@ Prototipo navegable del MVP: cómo atiende el asistente por WhatsApp, el panel d
 
 ## Qué se puede probar
 
-- **La charla:** una consulta de punta a punta, en 4 pantallas. Llega de noche, pide financiación, ofrece su usado por audio y, cuando pide un descuento, sigue un vendedor.
-- **El panel › Conversaciones:** pasar una charla entre modo IA y modo humano, y escribirle al cliente como vendedor.
-- **El panel › Interesados:** tomar una charla que espera a un vendedor, aprobar o descartar un seguimiento y ver el embudo por etapas.
+Todo se recorre desde la barra lateral. En el celular, desde el botón «Menú».
+
+- **La charla:** una consulta de punta a punta, en 4 pasos. Llega de noche, pide financiación, ofrece su usado por audio y, cuando pide un descuento, sigue un vendedor.
+- **Conversaciones:** pasar una charla entre modo IA y modo humano, y escribirle al cliente como vendedor.
+- **Interesados:** tomar una charla que espera a un vendedor, aprobar o descartar un seguimiento y ver el embudo por etapas.
 - **Cómo funciona:** qué hace el sistema solo, qué hace el equipo y qué entra en el MVP.
 
 ## Importante
